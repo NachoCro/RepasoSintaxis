@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Máquina de Turing · Repaso SSL</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand">Máquina de Turing <span>· Repaso SSL (Muchnik, Vol. 3, Cap. 7)</span></div>
+    <nav>
+      <a href="#conceptos">Conceptos</a>
+      <a href="#construir">Construir una MT</a>
+      <a href="#descubrir">Descubrir el lenguaje</a>
+      <a href="#simulador">Simulador</a>
+      <a href="#autoevaluacion">Autoevaluación</a>
+    </nav>
+  </header>
+
+  <main>
+    <p class="legend">
+      <span class="tag book">Libro</span> contenido tomado de Muchnik, <i>SSL 3 – Algoritmos</i> (2010), págs. 55-56 y 61.
+      <span class="tag extra">Complemento</span> material agregado para el estudio (no está en el libro).
+    </p>
+
+    <!-- ===================== 1. CONCEPTOS ===================== -->
+    <section id="conceptos">
+      <h1>1. Conceptos</h1>
+
+      <div class="card">
+        <span class="tag book">Libro</span>
+        <h2>¿Qué es una Máquina de Turing?</h2>
+        <p>Una <b>Máquina de Turing (MT)</b> es un <b>autómata determinístico</b> con la capacidad de
+          <b>reconocer cualquier lenguaje formal</b>. Es el autómata más poderoso: aunque no tiene utilidad
+          directa en la sintaxis y semántica de los lenguajes de programación, es muy importante conocerlo.</p>
+        <p>Además de <b>reconocer</b> lenguajes, la MT puede <b>computar</b>: puede realizar lo que hace una computadora
+          (por ejemplo, calcular el complemento de un número binario).</p>
+      </div>
+
+      <div class="card">
+        <span class="tag book">Libro</span>
+        <h2>Los 6 componentes</h2>
+        <ol class="components">
+          <li><b>Alfabeto A</b>: los símbolos del lenguaje a reconocer.</li>
+          <li><b>Cinta infinita</b>: dividida en celdas; cada una contiene un carácter o un <b>blanco</b> (□). Allí se coloca la cadena a analizar; el resto de las celdas tiene blancos.</li>
+          <li><b>Cabeza de cinta</b>: en <u>un solo paso</u> lee el contenido de una celda, lo <b>reemplaza</b> por otro carácter (o deja el mismo) y se mueve a la celda contigua: derecha (<b>R</b>) o izquierda (<b>L</b>). <em>Nunca</em> puede moverse a la izquierda de la celda del primer carácter.</li>
+          <li><b>Alfabeto A′</b>: los símbolos que la cabeza puede <b>escribir</b> en la cinta (típicamente marcas como X, Y, Z).</li>
+          <li><b>Conjunto finito de estados</b>: un estado <b>inicial</b> y un conjunto (posiblemente vacío) de estados <b>finales</b> que terminan la ejecución.</li>
+          <li><b>Programa</b>: reglas que, según el estado actual y el carácter leído, indican qué escribir, hacia dónde moverse y a qué estado pasar.</li>
+        </ol>
+      </div>
+
+      <div class="grid2">
+        <div class="card">
+          <span class="tag book">Libro</span>
+          <h2>Notación de una regla</h2>
+          <pre class="rule-fmt">estado actual – leído, escrito, dirección – estado de llegada</pre>
+          <pre class="code">e2 - c,Z,L - e3</pre>
+          <p>“Estando en <b>e2</b>, si leo <b>c</b>, escribo <b>Z</b>, me muevo a la <b>izquierda</b> y paso a <b>e3</b>.”</p>
+          <p>El estado final se indica con <b>+</b> (ej. <code>e8+</code>).</p>
+        </div>
+        <div class="card">
+          <span class="tag book">Libro</span>
+          <h2>El blanco como centinela</h2>
+          <div class="tape mini"><span>a</span><span>b</span><span>c</span><span class="blank">□</span><span class="blank">□</span><span class="blank">…</span></div>
+          <p>Después del último carácter hay infinitos blancos. El primero actúa como <b>centinela</b>,
+            como el <code>'\0'</code> de las cadenas en ANSI C: permite saber dónde termina la cadena.</p>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="card">
+          <span class="tag book">Libro</span> <span class="tag extra">Complemento</span>
+          <h2>Ubicación en la Jerarquía de Chomsky</h2>
+          <table class="tbl">
+            <tr><th>Lenguaje</th><th>Autómata</th><th>Ejemplo</th></tr>
+            <tr><td>Regular</td><td>AFD / AFN</td><td><code>a*b</code></td></tr>
+            <tr><td>Independiente de contexto (LIC)</td><td>AFP (con pila)</td><td>aⁿbⁿ</td></tr>
+            <tr><td>Cualquier lenguaje formal</td><td><b>MT</b></td><td>aⁿbⁿcⁿ</td></tr>
+          </table>
+          <p>L₆ = {aⁿbⁿcⁿ / n ≥ 1} no es Regular ni LIC; <b>sí</b> lo reconoce una MT. Y todo lo que reconoce un AFD o un AFP también lo puede reconocer una MT.</p>
+        </div>
+        <div class="card">
+          <span class="tag extra">Complemento</span>
+          <h2>¿Cuándo acepta y cuándo rechaza?</h2>
+          <ul>
+            <li><b>Acepta</b>: cuando transita a un <b>estado final</b>.</li>
+            <li><b>Rechaza</b>: cuando, en el estado actual, <b>no existe regla</b> para el carácter leído (Muchnik lo muestra como <code>e7 - c,?,? - ?</code>).</li>
+            <li>La MT es <b>determinística</b>: para cada par (estado, carácter) hay <b>como mucho una</b> regla.</li>
+            <li>A diferencia de un AF, una MT puede <b>no terminar nunca</b> (ciclo infinito).</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== 2. CONSTRUIR ===================== -->
+    <section id="construir">
+      <h1>2. Cómo construir una MT</h1>
+
+      <div class="card">
+        <span class="tag extra">Complemento</span> <span class="tag book">basado en el Ejemplo 1</span>
+        <h2>Método paso a paso</h2>
+        <ol class="steps">
+          <li><b>Entender el lenguaje.</b> Escribir las palabras más cortas y algunas que <em>no</em> pertenecen. Ej. L₆: <code>abc</code>, <code>aabbcc</code> ✔; <code>abcc</code>, <code>acb</code> ✘.</li>
+          <li><b>Elegir la estrategia.</b> Para lenguajes con cantidades relacionadas (aⁿbⁿcⁿ) la técnica clásica es <b>marcar</b>: en cada vuelta se “tacha” un símbolo de cada grupo.</li>
+          <li><b>Definir el alfabeto A′</b> de marcas: una por cada tipo de símbolo (a→X, b→Y, c→Z).</li>
+          <li><b>Diseñar el ciclo</b>:
+            <ul>
+              <li><b>Marcar</b> el primer símbolo sin marcar del 1° grupo.</li>
+              <li><b>Avanzar</b> (R) salteando lo que no interesa hasta el siguiente grupo y marcar.</li>
+              <li><b>Retroceder</b> (L) hasta la última marca del 1° grupo y volver a empezar.</li>
+            </ul>
+            Cada estado debe tener <b>una sola tarea</b> (“busco una b”, “vuelvo hasta la X”…).</li>
+          <li><b>Diseñar la verificación final</b>: cuando ya no quedan símbolos del 1° grupo, recorrer la cinta comprobando que todo esté marcado y llegar al <b>blanco</b> → estado final.</li>
+          <li><b>No agregar reglas para casos inválidos</b>: si una situación no debe aceptarse, simplemente no hay regla → la MT rechaza.</li>
+          <li><b>Probar</b> con cadenas válidas e inválidas (trazas, como en los ejercicios resueltos).</li>
+        </ol>
+      </div>
+
+      <div class="card">
+        <span class="tag book">Libro</span>
+        <h2>Ejemplo 1: L₆ = {aⁿbⁿcⁿ / n ≥ 1}</h2>
+        <p>MT de <b>9 estados</b>, A = {a,b,c}, A′ = {X,Y,Z}. Rol de cada estado:</p>
+        <table class="tbl">
+          <tr><th>Estado</th><th>Tarea</th></tr>
+          <tr><td>e0</td><td>Inicio de vuelta: marca una <code>a</code> con X. Si encuentra Y, ya no quedan aes → verificar (e6).</td></tr>
+          <tr><td>e1</td><td>Avanza sobre aes buscando una <code>b</code>; la marca con Y (→e2). Si ve Y, saltea las ya marcadas (→e4).</td></tr>
+          <tr><td>e4</td><td>Saltea Ys y marca la primera <code>b</code> libre (→e2).</td></tr>
+          <tr><td>e2</td><td>Avanza sobre bes buscando una <code>c</code>; la marca con Z y retrocede (→e3). Si ve Z, saltea (→e5).</td></tr>
+          <tr><td>e5</td><td>Saltea Zs y marca la primera <code>c</code> libre, retrocediendo (→e3).</td></tr>
+          <tr><td>e3</td><td>Retrocede sobre Z, b, Y, a hasta encontrar una X; avanza y vuelve a e0.</td></tr>
+          <tr><td>e6</td><td>Verificación: recorre las Ys.</td></tr>
+          <tr><td>e7</td><td>Verificación: recorre las Zs; al leer el blanco acepta.</td></tr>
+          <tr><td>e8+</td><td>Estado final.</td></tr>
+        </table>
+        <div class="example" data-machine="L6"></div>
+      </div>
+
+      <div class="card">
+        <span class="tag book">Libro</span>
+        <h2>Trazas (ejercicios resueltos, pág. 61)</h2>
+        <div class="grid2">
+          <div>
+            <h3>✔ Reconocimiento de <code>abc</code></h3>
+<pre class="code">e0 - a,X,R - e1
+e1 - b,Y,R - e2
+e2 - c,Z,L - e3
+e3 - Y,Y,L - e3
+e3 - X,X,R - e0
+e0 - Y,Y,R - e6
+e6 - Z,Z,R - e7
+e7 - □,□,L - e8+</pre>
+          </div>
+          <div>
+            <h3>✘ No reconocimiento de <code>abcc</code></h3>
+<pre class="code">e0 - a,X,R - e1
+e1 - b,Y,R - e2
+e2 - c,Z,L - e3
+e3 - Y,Y,L - e3
+e3 - X,X,R - e0
+e0 - Y,Y,R - e6
+e6 - Z,Z,R - e7
+e7 - c,?,? - ?</pre>
+            <p>En e7 no hay regla para <code>c</code> → rechaza.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <span class="tag book">Libro</span>
+        <h2>Ejemplo 2: MT que computa el complemento de un binario</h2>
+        <p>A = A′ = {0,1}. Recorre la cinta cambiando 0↔1 y termina al llegar al blanco. Aquí la MT no reconoce: <b>transforma</b> la cinta.</p>
+        <div class="example" data-machine="complemento"></div>
+      </div>
+
+      <div class="card">
+        <span class="tag book">Ejercicio 3</span> <span class="tag extra">Resolución propia</span>
+        <h2>L₇ = {aⁿbⁿcⁿ⁺¹ / n ≥ 1}</h2>
+        <p><b>Idea:</b> reutilizar la MT de L₆. El ciclo de marcado es idéntico; solo cambia la verificación:
+          luego de las Zs debe haber <b>exactamente una</b> <code>c</code> sin marcar y después el blanco.</p>
+        <details><summary>Ver solución</summary><div class="example" data-machine="L7"></div></details>
+      </div>
+
+      <div class="card">
+        <span class="tag book">Ejercicio 4</span> <span class="tag extra">Resolución propia</span>
+        <h2>Duplicar una cadena de aes y bes</h2>
+        <p><code>abbaa□</code> → <code>abbaa□abbaa</code>. <b>Idea:</b> marcar una letra (a→X, b→Y), “llevarla” en el estado
+          (e1 lleva una a, e2 lleva una b), cruzar el separador, escribirla al final de la copia y volver hasta la última marca.
+          La primera letra se marca distinto (A/B) para saber, al restaurar, dónde está el comienzo sin salirse de la cinta.</p>
+        <details><summary>Ver solución</summary><div class="example" data-machine="duplicar"></div></details>
+      </div>
+    </section>
+
+    <!-- ===================== 3. DESCUBRIR ===================== -->
+    <section id="descubrir">
+      <h1>3. Cómo descubrir el lenguaje que reconoce una MT</h1>
+
+      <div class="card">
+        <span class="tag extra">Complemento</span>
+        <h2>Método paso a paso</h2>
+        <ol class="steps">
+          <li><b>Identificar los componentes</b>: estado inicial, estados finales, A (lo que se lee de la entrada) y A′ (lo que se escribe: las marcas).</li>
+          <li><b>Armar la tabla</b> estado × símbolo leído. Las celdas vacías son situaciones de <b>rechazo</b>.</li>
+          <li><b>Dibujar el diagrama de estados</b> y darle una <b>tarea</b> a cada estado:
+            <ul>
+              <li>Reglas <code>x,x,R</code> en ciclo → “avanza salteando x”.</li>
+              <li>Reglas <code>x,x,L</code> en ciclo → “retrocede salteando x”.</li>
+              <li><code>a,X,…</code> → “marca una a”.</li>
+              <li>Regla con <code>□</code> hacia un estado final → “verifica el fin de la cadena”.</li>
+            </ul></li>
+          <li><b>Encontrar el ciclo principal</b> (ej. e0→e1→e2→e3→e0) y contar <b>cuántos símbolos de cada tipo marca por vuelta</b>. Eso da la relación entre las cantidades (n y n, n y 2n…).</li>
+          <li><b>Analizar la salida del ciclo y la verificación</b>: qué debe quedar en la cinta para llegar al estado final (¿todo marcado? ¿algún símbolo extra?).</li>
+          <li><b>Probar cadenas cortas</b> (traza) para confirmar: la más corta aceptada, y algunas que rechaza.</li>
+          <li><b>Escribir el lenguaje</b> por comprensión, cuidando el rango de n (¿n ≥ 0 o n ≥ 1? ¿acepta la palabra vacía?).</li>
+        </ol>
+        <p class="tip">💡 Si la MT nunca escribe algo distinto de lo que lee y siempre va a la derecha, se comporta como un <b>AFD</b>: el lenguaje es regular y se puede describir con una ER.</p>
+      </div>
+
+      <div class="card">
+        <span class="tag extra">Complemento</span>
+        <h2>Ejemplo resuelto: aplicando el método a la MT de L₆</h2>
+        <ol>
+          <li>Inicial e0, final e8. A = {a,b,c}, A′ = {X,Y,Z}.</li>
+          <li>Tabla (abajo): por ejemplo (e0, b) está vacía → una cadena que empieza con b se rechaza.</li>
+          <li>Tareas: e0 marca a; e1/e4 buscan b y la marcan; e2/e5 buscan c y la marcan; e3 retrocede hasta X; e6/e7 verifican.</li>
+          <li>Ciclo e0→e1(→e4)→e2(→e5)→e3→e0: marca <b>1 a, 1 b, 1 c</b> por vuelta.</li>
+          <li>Sale del ciclo cuando e0 lee Y (no quedan aes). e6 y e7 exigen solo Y, luego solo Z, luego □. Así no pueden sobrar bes ni ces.</li>
+          <li>Más corta: <code>abc</code> ✔. <code>abcc</code> ✘, <code>aabc</code> ✘.</li>
+          <li><b>L = {aⁿbⁿcⁿ / n ≥ 1}</b></li>
+        </ol>
+        <div class="table-wrap" data-table="L6"></div>
+      </div>
+
+      <h2 class="sub">Practicá: ¿qué lenguaje reconoce cada MT?</h2>
+      <div id="discover-list"></div>
+    </section>
+
+    <!-- ===================== 4. SIMULADOR ===================== -->
+    <section id="simulador">
+      <h1>4. Simulador</h1>
+      <div class="card">
+        <span class="tag extra">Complemento</span>
+        <div class="sim-controls">
+          <label>Ejemplo
+            <select id="sim-example"></select>
+          </label>
+          <label>Cadena de entrada
+            <input id="sim-input" type="text" placeholder="ej: aabbcc" autocomplete="off">
+          </label>
+          <div class="btns">
+            <button id="sim-load">Cargar</button>
+            <button id="sim-step">Paso ▶</button>
+            <button id="sim-run">Ejecutar ⏩</button>
+            <button id="sim-play">Animar ⏯</button>
+          </div>
+        </div>
+        <div id="sim-quick" class="quick"></div>
+
+        <div class="sim-grid">
+          <div>
+            <label class="block">Programa (notación Muchnik; blanco: □ o _ ; final con +)
+              <textarea id="sim-program" spellcheck="false"></textarea>
+            </label>
+            <div id="sim-errors" class="errors"></div>
+          </div>
+          <div>
+            <div class="status" id="sim-status">Cargá una cadena.</div>
+            <div class="tape" id="sim-tape"></div>
+            <div class="sim-info" id="sim-info"></div>
+            <label class="block">Traza
+              <pre class="code log" id="sim-log"></pre>
+            </label>
+          </div>
+        </div>
+        <svg id="sim-diagram" class="diagram"></svg>
+      </div>
+    </section>
+
+    <!-- ===================== 5. AUTOEVALUACIÓN ===================== -->
+    <section id="autoevaluacion">
+      <h1>5. Autoevaluación</h1>
+      <div id="quiz"></div>
+      <div class="card score-card">
+        <button id="quiz-check">Corregir</button>
+        <span id="quiz-score"></span>
+      </div>
+    </section>
+
+    <footer>
+      Bibliografía: Muchnik, Jorge D. (2010). <i>Sintaxis y Semántica de los Lenguajes – Vol. 3: Algoritmos</i>. Editorial CEIT, Buenos Aires.
+    </footer>
+  </main>
+
+  <script src="js/machines.js"></script>
+  <script src="js/parser.js"></script>
+  <script src="js/simulator.js"></script>
+  <script src="js/diagram.js"></script>
+  <script src="js/quiz.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
