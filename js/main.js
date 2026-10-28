@@ -15,10 +15,7 @@
     return a;
   };
 
-  // Resalta los comentarios /* */ dentro del código
-  const highlight = (code) => esc(code).replace(/\/\*.*?\*\//g, (m) => `<span class="cm">${m}</span>`);
-
-  const runMachine = (m, w) => { const s = new TM.Simulator(m, w); s.run(); return s; };
+  const runMachine = (m, w) => { const s = TM.newSim(m, w); s.run(); return s; };
 
   // ---------- Navegación: una sección por pantalla ----------
   const sections = [...document.querySelectorAll("main > section")];
@@ -67,6 +64,26 @@
     return h + "</table>";
   }
 
+  // Tabla de reglas: una fila por regla, columnas (lee, escribe, mueve) agrupadas por cinta.
+  // pre = columnas antes de "Estado" (ej. Paso), extra = columnas después de "Próximo estado"
+  const headRules = (k, { pre = "", extra = "" } = {}) => {
+    const groups = k === 2 ? [["t1", "Cinta 1"], ["t2", "Cinta 2"]] : [["t1", "Cinta"]];
+    return `<thead><tr>${pre}<th rowspan="2">Estado</th>${groups.map(([c, t]) => `<th colspan="3" class="${c} g">${t}</th>`).join("")}<th rowspan="2" class="g">Próximo estado</th>${extra}</tr>
+      <tr>${groups.map(() => `<th class="g">Lee</th><th>Escribe</th><th>Mueve</th>`).join("")}</tr></thead>`;
+  };
+  // [leído, escrito, mov] de cada cinta (en 1 cinta la regla tiene valores simples)
+  const perTape = (r) => (Array.isArray(r.read) ? r.read.map((x, k) => [x, r.write[k], r.dir[k]]) : [[r.read, r.write, r.dir]]);
+  const cellsRule = (r) => perTape(r).map(([x, w, d]) => `<td class="g">${esc(x)}</td><td>${esc(w)}</td><td>${d}</td>`).join("");
+
+  function rulesHTML(machine) {
+    const comments = machine.rows.some((r) => r.comment);
+    return `<table class="tbl tt tt2">${headRules(machine.tapes, { extra: comments ? `<th rowspan="2">Comentario</th>` : "" })}${machine.rows
+      .map((r) => `<tr><td><b>${r.from}${r.from === machine.initial ? "−" : ""}</b></td>${cellsRule(r)}<td class="g"><b>${r.to}${machine.finals.has(r.to) ? "+" : ""}</b></td>${comments ? `<td class="cm">${esc(r.comment)}</td>` : ""}</tr>`)
+      .join("")}</table>`;
+  }
+
+  const programHTML = (def) => `<div class="table-wrap">${rulesHTML(TM.compileDef(def))}</div>`;
+
   // ---------- Ruta de estudio ----------
   const route = [
     { title: "Conceptos", time: "45 min", items: [
@@ -90,6 +107,12 @@
       ["d1", "Leer el método y el ejemplo resuelto con L₆", "#descubrir"],
       ["d2", "MT misteriosas 1 a 3 (predecir antes de ver la solución)", "#discover-list"],
       ["d3", "MT misteriosas 4 a 6", "#discover-list"],
+    ] },
+    { title: "2 cintas", time: "1 h", items: [
+      ["t1", "Leer qué cambia con 2 cintas y la notación en tabla", "#doscintas"],
+      ["t2", "Seguir L₆ con 2 cintas en el simulador y comparar los pasos", "#doscintas"],
+      ["t3", "Construir aⁿb²ⁿ o w c wᴿ con 2 cintas y verificarla", "#build2-list"],
+      ["t4", "MT misteriosa 7 (2 cintas)", "#discover2-list"],
     ] },
     { title: "Simulacro", time: "1 h", items: [
       ["s1", "Hacer el simulacro completo con el reloj", "#autoevaluacion"],
@@ -129,24 +152,32 @@
   // ---------- Ejemplos (programa + diagrama + tabla) ----------
   function renderExample(container, key, { showTitle = false } = {}) {
     const def = TM.machines[key];
-    const m = TM.parse(def.program);
+    const m = TM.compileDef(def);
     container.innerHTML = `
       ${showTitle ? `<h3>${def.title}</h3>` : ""}
-      <div class="ex-grid">
-        <div>
-          <pre class="code">${highlight(def.program)}</pre>
-          <div class="table-wrap">${tableHTML(m)}</div>
-        </div>
-        <div><svg class="diagram"></svg></div>
-      </div>
+      ${programHTML(def)}
       <div class="btns">${def.inputs
         .map((w) => `<button class="small" data-sim="${key}" data-input="${esc(w)}">Simular «${esc(show(w))}»</button>`)
-        .join("")}</div>`;
+        .join("")}</div>
+      ${m.tapes === 1 ? `<details><summary>Tabla de transiciones (estado × carácter leído)</summary><div class="table-wrap">${tableHTML(m)}</div></details>` : ""}
+      <div class="ex-stack"><svg class="diagram"></svg></div>`;
     TM.renderDiagram($("svg", container), m);
   }
 
   document.querySelectorAll(".example").forEach((el) => renderExample(el, el.dataset.machine));
   document.querySelectorAll("[data-table]").forEach((el) => (el.innerHTML = tableHTML(TM.parse(TM.machines[el.dataset.table].program))));
+
+  // Comparación 1 cinta vs. 2 cintas (reglas, estados y pasos reales)
+  const compare = [
+    ["aⁿbⁿ", "misterio1", "anbn2", "aaaabbbb"],
+    ["L₆ = aⁿbⁿcⁿ", "L6", "L6_2", "aaaabbbbcccc"],
+    ["w c w", "wcw", "wcw2", "abbacabba"],
+    ["Duplicar", "duplicar", "duplicar2", "abbaa"],
+  ];
+  $("#compare2").innerHTML = `<table class="tbl"><tr><th>Problema</th><th>Entrada</th><th>1 cinta</th><th>2 cintas</th></tr>${compare.map(([name, k1, k2, w]) => {
+    const info = (k) => { const m = TM.compileDef(TM.machines[k]); return `${m.states.length} estados · ${m.rules.size} reglas · <b>${runMachine(m, w).steps} pasos</b>`; };
+    return `<tr><td>${name}</td><td><code>${esc(w)}</code></td><td>${info(k1)}</td><td>${info(k2)}</td></tr>`;
+  }).join("")}</table>`;
 
   // ---------- Descubrir el lenguaje ----------
   function discoverCard(d) {
@@ -167,7 +198,7 @@
       <details><summary>Pista</summary><p>${d.hint}</p></details>
       <details><summary>Ver solución</summary>${d.solution}</details>`;
     renderExample($(".example", card), d.key);
-    const m = TM.parse(TM.machines[d.key].program);
+    const m = TM.compileDef(TM.machines[d.key]);
     $(".check-pred", card).onclick = () => {
       let ok = 0;
       d.predict.forEach((w, i) => {
@@ -182,12 +213,10 @@
     };
     return card;
   }
-  const dl = $("#discover-list");
-  TM.discover.forEach((d) => dl.appendChild(discoverCard(d)));
+  TM.discover.forEach((d) => $(TM.machines[d.key].tapes === 2 ? "#discover2-list" : "#discover-list").appendChild(discoverCard(d)));
 
   // ---------- Construir: ejercicios con verificación ----------
   const caseText = (c) => ("out" in c ? `${show(c.w)} → ${c.out}` : `${show(c.w)} ${c.ok ? "✔" : "✘"}`);
-  const bl = $("#build-list");
   TM.build.forEach((b) => {
     const card = document.createElement("div");
     card.className = "card";
@@ -199,20 +228,71 @@
       <details><summary>Pista</summary><p>${b.hint}</p></details>
       <details><summary>Ver solución</summary><div class="example"></div></details>`;
     renderExample($(".example", card), b.key);
-    bl.appendChild(card);
+    $(b.tapes === 2 ? "#build2-list" : "#build-list").appendChild(card);
   });
 
   // ---------- Simulador ----------
-  const sel = $("#sim-example"), prog = $("#sim-program"), inp = $("#sim-input");
+  const sel = $("#sim-example"), inp = $("#sim-input");
   const tapeEl = $("#sim-tape"), statusEl = $("#sim-status"), infoEl = $("#sim-info");
   const logEl = $("#sim-log"), errEl = $("#sim-errors"), diag = $("#sim-diagram"), quick = $("#sim-quick");
   const exSel = $("#sim-exercise"), verifyOut = $("#sim-verify-out"), speed = $("#sim-speed");
+  const simCard = $("#sim-card"), tapesSel = $("#sim-tapes"), grid = $("#sim-grid");
   let machine = null, sim = null, timer = null;
 
-  const groups = { libro: "Ejemplos y ejercicios", misterio: "MT misteriosas", sol: "Soluciones de práctica" };
+  const groups = { libro: "Ejemplos y ejercicios", misterio: "MT misteriosas", sol: "Soluciones de práctica", dos: "2 cintas" };
   const og = {};
   for (const [g, label] of Object.entries(groups)) { og[g] = document.createElement("optgroup"); og[g].label = label; sel.appendChild(og[g]); }
-  for (const [k, d] of Object.entries(TM.machines)) og[d.solution ? "sol" : k.startsWith("misterio") ? "misterio" : "libro"].appendChild(new Option(d.title, k));
+  for (const [k, d] of Object.entries(TM.machines)) og[d.tapes === 2 ? "dos" : d.solution ? "sol" : k.startsWith("misterio") ? "misterio" : "libro"].appendChild(new Option(d.title, k));
+
+  // ---------- Editor en grilla ----------
+  // Cada fila: estado | (lee, escribe, mueve) por cinta | próximo estado | comentario
+  const tapes = () => +tapesSel.value;
+  const setTapes = (n) => { tapesSel.value = n; simCard.dataset.tapes = n; };
+  const moves = (k) => (k === 2 ? TM.MOVES : ["R", "L"]);
+  const moveSel = (k, v) => `<select>${moves(k).map((d) => `<option${d === v ? " selected" : ""}>${d}</option>`).join("")}</select>`;
+  const txt = (v, cls) => `<input type="text" class="${cls}" value="${esc(v)}" autocomplete="off" spellcheck="false">`;
+  const gridRow = (k, f = []) => {
+    const t = [];
+    for (let j = 0; j < k; j++) {
+      const [r = "", w = "", d = "R"] = f.slice(1 + 3 * j, 4 + 3 * j);
+      t.push(`<td class="g">${txt(r, "sy")}</td><td>${txt(w, "sy")}</td><td>${moveSel(k, d)}</td>`);
+    }
+    return `<tr><td>${txt(f[0] || "", "st")}</td>${t.join("")}<td class="g">${txt(f[1 + 3 * k] || "", "st")}</td>` +
+      `<td class="g">${txt(f[2 + 3 * k] || "", "cm")}</td><td><button class="small del" title="Borrar fila">✕</button></td></tr>`;
+  };
+  function fillGrid(text, minRows = 0) {
+    const k = tapes();
+    const rows = k === 2 ? TM.fields2(text) : TM.fields1(text);
+    while (rows.length < minRows) rows.push([]);
+    grid.innerHTML = headRules(k, { extra: `<th rowspan="2" class="g">Comentario</th><th rowspan="2"></th>` }) +
+      `<tbody>${rows.map((f) => gridRow(k, f)).join("")}</tbody>`;
+  }
+  // Serializa la grilla al formato de texto del parser (una línea por fila, vacías incluidas):
+  // 1 cinta: notación Muchnik «e0 - a,X,R - e1» · 2 cintas: «e0 | a a S | □ # R | e1»
+  const gridText = (k = tapes()) => [...grid.querySelectorAll("tbody tr")].map((tr) => {
+    const v = [...tr.querySelectorAll("input, select")].map((e) => e.value.trim());
+    const cm = v.pop(), to = v.pop(), from = v.shift();
+    if (![from, to, ...v.filter((_, i) => i % 3 !== 2)].some(Boolean)) return "";
+    const c = cm ? `  /* ${cm.replace(/\*\//g, "")} */` : "";
+    if (k === 1) return `${from} - ${v.join(",")} - ${to}${c}`;
+    return `${from} | ${v.slice(0, 3).join(" ")} | ${v.slice(3).join(" ")} | ${to}${c}`;
+  }).join("\n");
+  const toCustom = () => { if (sel.value) { sel.value = ""; quick.innerHTML = ""; } };
+
+  $("#grid-add").onclick = () => { $("tbody", grid).insertAdjacentHTML("beforeend", gridRow(tapes())); $("tbody tr:last-child input", grid).focus(); };
+  $("#grid-clear").onclick = () => { toCustom(); fillGrid("", 4); load(); };
+  grid.oninput = toCustom;
+  grid.onclick = (e) => { if (e.target.closest(".del")) { e.target.closest("tr").remove(); toCustom(); } };
+  // Al cambiar la cantidad de cintas se guarda el programa de cada modo
+  const saved = { 1: "", 2: "" };
+  tapesSel.onchange = () => {
+    const k = tapes(), prev = +simCard.dataset.tapes;
+    saved[prev] = gridText(prev);
+    setTapes(k);
+    toCustom();
+    fillGrid(saved[k], 4);
+    load();
+  };
   sel.add(new Option("(programa propio)", ""));
   for (const b of TM.build) exSel.add(new Option(b.title, b.key));
 
@@ -220,8 +300,10 @@
 
   function setExample(key, input) {
     if (key) {
+      const def = TM.machines[key];
       sel.value = key;
-      prog.value = TM.machines[key].program;
+      setTapes(def.tapes || 1);
+      fillGrid(def.program);
       inp.value = input ?? TM.machines[key].inputs[0];
       quick.innerHTML = quickButtons(TM.machines[key].inputs);
     }
@@ -234,44 +316,65 @@
     verifyOut.innerHTML = "";
     if (!b) return;
     sel.value = "";
-    prog.value = `/* ${b.title} */\n`;
+    if (b.tapes) setTapes(b.tapes);
+    fillGrid("", 4);
     inp.value = b.cases[0].w;
     quick.innerHTML = quickButtons(b.cases.map((c) => c.w));
     load();
-    prog.focus();
+    $("tbody input", grid).focus();
   }
 
   function load() {
     stopAnim();
     guessStats = { ok: 0, total: 0 };
-    machine = TM.parse(prog.value);
+    machine = TM.compile(gridText(), tapes());
     errEl.innerHTML = machine.errors.map((e) => `<div>⚠ ${esc(e)}</div>`).join("");
     if (!machine.states.length) {
       sim = null;
       statusEl.textContent = "El programa no tiene reglas válidas.";
       statusEl.className = "status";
-      tapeEl.innerHTML = ""; diag.innerHTML = ""; logEl.textContent = ""; infoEl.innerHTML = "";
+      tapeEl.innerHTML = ""; diag.innerHTML = ""; logEl.innerHTML = ""; infoEl.innerHTML = "";
       updateGuess();
       return;
     }
-    sim = new TM.Simulator(machine, inp.value.trim());
+    sim = TM.newSim(machine, inp.value.trim());
     draw();
   }
 
-  function draw() {
-    const to = Math.max(sim.tape.length, sim.head + 1) + 3;
+  const tapeHTML = (tape, head, to) => {
     let h = "";
     for (let i = 0; i < to; i++) {
-      const c = sim.tape[i] ?? TM.BLANK;
-      h += `<span class="${i === sim.head ? "head" : ""} ${c === TM.BLANK ? "blank" : ""}">${esc(c)}</span>`;
+      const c = tape[i] ?? TM.BLANK;
+      h += `<span class="${i === head ? "head" : ""} ${c === TM.BLANK ? "blank" : ""}">${esc(c)}</span>`;
     }
-    tapeEl.innerHTML = h;
-    infoEl.innerHTML = `Estado: <b>${sim.state}${machine.finals.has(sim.state) ? "+" : ""}</b> · Leyendo: <b>${esc(sim.read())}</b> · Pasos: <b>${sim.steps}</b>`;
-    logEl.textContent = sim.log.join("\n");
+    return `<div class="tape">${h}</div>`;
+  };
+
+  // Traza como tabla; la última fila puede ser "no hay regla" (como «e7 - c,?,? - ?» en el libro)
+  const traceHTML = (log) => `<table class="tbl tt tt2">${headRules(machine.tapes, { pre: `<th rowspan="2">Paso</th>` })}${log
+    .map((r, i) => r.missing
+      ? `<tr class="bad"><td>${i + 1}</td><td>${r.from}</td>${[].concat(r.read).map((x) => `<td class="g">${esc(x)}</td><td>?</td><td>?</td>`).join("")}<td class="g">?</td></tr>`
+      : `<tr><td>${i + 1}</td><td>${r.from}</td>${cellsRule(r)}<td class="g">${r.to}${machine.finals.has(r.to) ? "+" : ""}</td></tr>`)
+    .join("")}</table>`;
+
+  function draw() {
+    const two = machine.tapes === 2;
+    if (two) {
+      const to = Math.max(...sim.tapes.map((t, k) => Math.max(t.length, sim.heads[k] + 1))) + 3;
+      tapeEl.innerHTML = sim.tapes.map((t, k) => `<div class="tape-label">Cinta ${k + 1}</div>${tapeHTML(t, sim.heads[k], to)}`).join("");
+    } else {
+      tapeEl.innerHTML = tapeHTML(sim.tape, sim.head, Math.max(sim.tape.length, sim.head + 1) + 3);
+    }
+    logEl.innerHTML = traceHTML(sim.log);
     logEl.scrollTop = logEl.scrollHeight;
+    // Resalta en la grilla la última regla aplicada
+    grid.querySelectorAll("tbody tr").forEach((tr, i) => tr.classList.toggle("hl", !!sim.lastRule && sim.lastRule.line === i + 1));
+    const reading = two ? `(${sim.read().map(esc).join(", ")})` : esc(sim.read());
+    infoEl.innerHTML = `Estado: <b>${sim.state}${machine.finals.has(sim.state) ? "+" : ""}</b> · Leyendo: <b>${reading}</b> · Pasos: <b>${sim.steps}</b>`;
     if (sim.result === "acepta") {
       statusEl.className = "status ok";
-      statusEl.textContent = `✔ ACEPTA — ${sim.reason}. Cinta final: ${sim.tapeText() || "(vacía)"}`;
+      const final = two ? `Cinta 1: ${sim.tapeText(0) || "(vacía)"} · Cinta 2: ${sim.tapeText(1) || "(vacía)"}` : `Cinta final: ${sim.tapeText() || "(vacía)"}`;
+      statusEl.textContent = `✔ ACEPTA — ${sim.reason}. ${final}`;
     } else if (sim.result === "rechaza") {
       statusEl.className = "status bad";
       statusEl.textContent = `✘ RECHAZA — ${sim.reason}.`;
@@ -308,7 +411,6 @@
   };
   sel.onchange = () => (sel.value ? setExample(sel.value) : ((quick.innerHTML = ""), load()));
   inp.onkeydown = (e) => { if (e.key === "Enter") load(); };
-  prog.oninput = () => { if (sel.value) { sel.value = ""; quick.innerHTML = ""; } };
   quick.onclick = (e) => { const b = e.target.closest("[data-q]"); if (b) { inp.value = b.dataset.q; load(); } };
   exSel.onchange = () => {
     verifyOut.innerHTML = "";
@@ -320,7 +422,7 @@
   $("#sim-verify").onclick = () => {
     const b = TM.build.find((x) => x.key === exSel.value);
     if (!b) { verifyOut.innerHTML = `<p class="bad">Elegí primero un ejercicio.</p>`; return; }
-    const m = TM.parse(prog.value);
+    const m = TM.compile(gridText(), tapes());
     if (!m.states.length) { verifyOut.innerHTML = `<p class="bad">El programa no tiene reglas válidas.</p>`; return; }
     let ok = 0;
     const rows = b.cases.map((c) => {
@@ -351,8 +453,8 @@
   const guessOn = $("#sim-guess-on"), guessBox = $("#sim-guess");
 
   function updateGuess() {
-    guessBox.hidden = !guessOn.checked;
-    if (!guessOn.checked) return;
+    guessBox.hidden = !guessOn.checked || tapes() === 2;
+    if (guessBox.hidden) return;
     const live = sim && !sim.result;
     $("#g-from").innerHTML = !sim ? "—" : live ? `${sim.state}, leyendo ${esc(sim.read())}` : "la ejecución terminó";
     $("#g-check").disabled = !live;
@@ -427,7 +529,7 @@
     $("#mock-tasks").innerHTML = `<div class="card"><h3>A. Construí la MT: ${b.title}</h3><p>${b.text}</p>
         <button class="small" data-build="${b.key}">Resolver en el simulador ✎</button> y después «Verificar mi MT».</div>
       <div class="card"><h3>B. ¿Qué ${d.mode === "output" ? "computa" : "lenguaje reconoce"} la ${TM.machines[d.key].title}?</h3>
-        <pre class="code">${esc(TM.machines[d.key].program)}</pre>
+        ${programHTML(TM.machines[d.key])}
         <label class="block">Tu respuesta <input type="text" autocomplete="off"></label>
         <details><summary>Ver solución (al terminar)</summary>${d.solution}</details></div>
       <h3>C. Preguntas</h3>`;

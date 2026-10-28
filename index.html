@@ -14,6 +14,7 @@
       <a href="#conceptos">Conceptos</a>
       <a href="#construir">Construir una MT</a>
       <a href="#descubrir">Descubrir el lenguaje</a>
+      <a href="#doscintas">2 cintas</a>
       <a href="#simulador">Simulador</a>
       <a href="#autoevaluacion">Autoevaluación</a>
       <a href="#resumen">Hoja resumen</a>
@@ -22,7 +23,7 @@
 
   <main>
     <p class="legend">
-      <span class="tag book">Libro</span> contenido tomado de Muchnik, <i>SSL 3 – Algoritmos</i> (2010), págs. 55-56 y 61.
+      <span class="tag book">Libro</span> contenido tomado de Muchnik, <i>SSL 3 – Algoritmos</i> (2010), págs. 55-56 y 61 (solo MT de 1 cinta).
       <span class="tag extra">Complemento</span> material agregado para el estudio (no está en el libro).
     </p>
 
@@ -74,6 +75,16 @@
           <pre class="code">e2 - c,Z,L - e3</pre>
           <p>“Estando en <b>e2</b>, si leo <b>c</b>, escribo <b>Z</b>, me muevo a la <b>izquierda</b> y paso a <b>e3</b>.”</p>
           <p>El estado final se indica con <b>+</b> (ej. <code>e8+</code>).</p>
+          <p><span class="tag extra">Complemento</span> La misma regla en forma de tabla (así se muestran los programas en este repaso):</p>
+          <div class="table-wrap">
+            <table class="tbl tt tt2">
+              <thead>
+                <tr><th rowspan="2">Estado</th><th colspan="3" class="t1 g">Cinta</th><th rowspan="2" class="g">Próximo estado</th></tr>
+                <tr><th class="g">Lee</th><th>Escribe</th><th>Mueve</th></tr>
+              </thead>
+              <tr><td>e2</td><td class="g">c</td><td>Z</td><td>L</td><td class="g">e3</td></tr>
+            </table>
+          </div>
         </div>
         <div class="card">
           <span class="tag book">Libro</span>
@@ -221,7 +232,7 @@ e7 - c,?,? - ?</pre>
       </div>
 
       <h2 class="sub">Practicá: construí la MT</h2>
-      <p class="muted">Escribí tu programa en el simulador y apretá <b>Verificar mi MT</b>: se prueba contra todos los casos del ejercicio.</p>
+      <p class="muted">Completá la grilla del simulador y apretá <b>Verificar mi MT</b>: se prueba contra todos los casos del ejercicio.</p>
       <div id="build-list"></div>
     </section>
 
@@ -269,12 +280,148 @@ e7 - c,?,? - ?</pre>
       <div id="discover-list"></div>
     </section>
 
-    <!-- ===================== 4. SIMULADOR ===================== -->
-    <section id="simulador">
-      <h1>4. Simulador</h1>
+    <!-- ===================== 4. DOS CINTAS ===================== -->
+    <section id="doscintas">
+      <h1>4. MT de 2 cintas</h1>
+
       <div class="card">
         <span class="tag extra">Complemento</span>
+        <h2>¿Qué cambia con 2 cintas?</h2>
+        <p>El libro solo presenta la MT de <b>1 cinta</b>. En el parcial se puede usar la de 1 o la de 2 cintas: es la misma máquina con una <b>segunda cinta auxiliar</b>.</p>
+        <ul>
+          <li>Hay <b>dos cintas</b> y cada una tiene <b>su propia cabeza</b>. La cadena a analizar está en la <b>cinta 1</b>; la <b>cinta 2</b> empieza toda en blanco.</li>
+          <li>En <u>un solo paso</u> la MT lee <b>las dos celdas</b> (una por cinta), escribe en las dos y mueve cada cabeza por separado: <b>R</b>, <b>L</b> o <b>S</b> (se queda quieta).</li>
+          <li>La regla depende del <b>estado</b> y del <b>par de caracteres leídos</b>. Sigue siendo <b>determinística</b>: como mucho una regla por (estado, leído en la cinta 1, leído en la cinta 2).</li>
+          <li><b>Acepta</b> al llegar a un estado final y <b>rechaza</b> si no hay regla, igual que con 1 cinta. Ninguna cabeza puede moverse a la izquierda de la primera celda de su cinta.</li>
+        </ul>
+        <div class="tapes-demo">
+          <div class="tape-label">Cinta 1 (entrada)</div>
+          <div class="tape mini"><span>a</span><span class="head">a</span><span>b</span><span>b</span><span class="blank">□</span><span class="blank">…</span></div>
+          <div class="tape-label">Cinta 2 (auxiliar)</div>
+          <div class="tape mini"><span>#</span><span>X</span><span class="head blank">□</span><span class="blank">□</span><span class="blank">□</span><span class="blank">…</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <span class="tag extra">Complemento</span>
+        <h2>Notación: una tabla con columnas por cinta</h2>
+        <p>Cada fila es una regla. Las columnas de cada cinta van agrupadas: qué <b>lee</b>, qué <b>escribe</b> y hacia dónde se <b>mueve</b> su cabeza.</p>
+        <div class="table-wrap">
+          <table class="tbl tt tt2">
+            <thead>
+              <tr><th rowspan="2">Estado</th><th colspan="3" class="t1 g">Cinta 1</th><th colspan="3" class="t2 g">Cinta 2</th><th rowspan="2" class="g">Próximo estado</th></tr>
+              <tr><th class="g">Lee</th><th>Escribe</th><th>Mueve</th><th class="g">Lee</th><th>Escribe</th><th>Mueve</th></tr>
+            </thead>
+            <tr><td>e1</td><td class="g">a</td><td>a</td><td>R</td><td class="g">□</td><td>X</td><td>R</td><td class="g">e1</td></tr>
+            <tr><td>e3</td><td class="g">□</td><td>□</td><td>S</td><td class="g">□</td><td>□</td><td>S</td><td class="g">e4+</td></tr>
+          </table>
+        </div>
+        <p>1° fila: “Estando en <b>e1</b>, si en la cinta 1 leo <b>a</b> y en la cinta 2 leo <b>□</b>: en la cinta 1 dejo la a y avanzo; en la cinta 2 escribo una <b>X</b> y avanzo; sigo en e1.”</p>
+        <p>Como en el libro, el estado final se marca con <b>+</b>. En los diagramas, la regla se abrevia <code>a□/aX,RR</code>: los dos caracteres leídos / los dos escritos, los dos movimientos.</p>
+      </div>
+
+      <div class="grid2">
+        <div class="card">
+          <span class="tag extra">Complemento</span>
+          <h2>¿Es más poderosa que la de 1 cinta?</h2>
+          <p><b>No.</b> Reconocen exactamente los <b>mismos lenguajes</b>: una MT de 1 cinta puede simular a una de 2 cintas (por ejemplo, guardando las dos cintas intercaladas en una sola y marcando dónde está cada cabeza).</p>
+          <p>La de 2 cintas solo es <b>más cómoda</b>: necesita menos estados, menos reglas y muchos menos pasos, porque no tiene que ir y volver marcando.</p>
+        </div>
+        <div class="card">
+          <span class="tag extra">Complemento</span>
+          <h2>¿Cuál conviene usar en el parcial?</h2>
+          <ul>
+            <li><b>2 cintas</b> cuando hay que <b>contar</b>, <b>copiar</b> o <b>comparar</b>: aⁿbⁿ, aⁿbⁿcⁿ, wcw, duplicar…</li>
+            <li><b>1 cinta</b> cuando la MT solo recorre o transforma la entrada: complemento de un binario, lenguajes regulares (las MT “AFD disfrazadas”).</li>
+            <li>Si en el enunciado dice “MT” sin aclarar, aclarar en la hoja cuál usás y qué significa <b>S</b>.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card">
+        <span class="tag extra">Complemento</span>
+        <h2>Comparación: 1 cinta vs. 2 cintas</h2>
+        <p class="muted">Calculado ejecutando las MT de este repaso.</p>
+        <div class="table-wrap" id="compare2"></div>
+      </div>
+
+      <div class="card">
+        <span class="tag extra">Complemento</span>
+        <h2>Técnicas para construir una MT de 2 cintas</h2>
+        <ol class="steps">
+          <li><b>Marcar el comienzo de la cinta 2 con #.</b> El primer paso escribe # en la cinta 2 y avanza solo esa cabeza (S en la cinta 1). Así, al retroceder, sabés dónde parar sin salirte de la cinta.</li>
+          <li><b>Usar la cinta 2 como contador.</b> Por cada a, escribir una X y avanzar; por cada b, retroceder una X. Si la cinta 1 llega al □ justo cuando la cinta 2 llega al #, las cantidades son iguales.</li>
+          <li><b>Copiar y comparar.</b> Copiar una parte de la entrada en la cinta 2, volver hasta el # y recorrer las dos cintas a la vez comparando. Para comparar al revés (wᴿ), una cabeza avanza y la otra retrocede.</li>
+          <li><b>Esperar con S.</b> Mientras una cabeza trabaja, la otra se queda quieta sobre un símbolo conocido (la c, el □). Así no hace falta una regla por cada combinación de caracteres.</li>
+          <li><b>Verificar el final en las dos cintas.</b> Para aceptar, leer los dos centinelas a la vez (ej. □ en la cinta 1 y # en la cinta 2).</li>
+        </ol>
+      </div>
+
+      <div class="card">
+        <span class="tag extra">Complemento</span> <span class="tag book">mismo lenguaje que el Ejemplo 1</span>
+        <h2>L₆ = {aⁿbⁿcⁿ / n ≥ 1} con 2 cintas</h2>
+        <p>La misma MT del libro necesita 9 estados y 21 reglas. Con 2 cintas alcanzan <b>5 estados y 7 reglas</b>:</p>
+        <table class="tbl">
+          <tr><th>Estado</th><th>Tarea</th></tr>
+          <tr><td>e0</td><td>Escribe # al comienzo de la cinta 2 (la cinta 1 se queda).</td></tr>
+          <tr><td>e1</td><td>Por cada <code>a</code> escribe una X en la cinta 2. Con la primera <code>b</code>, la cinta 2 retrocede a la última X.</td></tr>
+          <tr><td>e2</td><td>Cada <code>b</code> consume una X (la cinta 2 retrocede). Si con la primera <code>c</code> la cinta 2 está en el #, había tantas bes como aes.</td></tr>
+          <tr><td>e3</td><td>Cada <code>c</code> vuelve a recorrer una X (la cinta 2 avanza). Con □ en las dos cintas: misma cantidad → e4+.</td></tr>
+        </table>
+        <div class="example" data-machine="L6_2"></div>
+      </div>
+
+      <div class="card">
+        <span class="tag extra">Complemento</span>
+        <h2>aⁿbⁿ / n ≥ 1 con 2 cintas</h2>
+        <p>La cinta 2 como contador: 5 reglas (con 1 cinta, la MT misteriosa 1 usa 10).</p>
+        <div class="example" data-machine="anbn2"></div>
+      </div>
+
+      <div class="card">
+        <span class="tag extra">Complemento</span>
+        <h2>w c w con 2 cintas</h2>
+        <p><b>Idea:</b> copiar la 1° w en la cinta 2. Al leer la c, la cinta 1 <b>espera sobre la c</b> (S) mientras la cinta 2 vuelve al #. Después las dos cabezas avanzan juntas comparando letra por letra.</p>
+        <details><summary>Ver solución</summary><div class="example" data-machine="wcw2"></div></details>
+      </div>
+
+      <div class="card">
+        <span class="tag book">Ejercicio 4</span> <span class="tag extra">con 2 cintas</span>
+        <h2>Duplicar una cadena de aes y bes con 2 cintas</h2>
+        <p><code>abbaa□</code> → <code>abbaa□abbaa</code>. <b>Idea:</b> copiar la cadena en la cinta 2; con la cinta 1 esperando sobre el □, volver la cinta 2 al #; dejar el □ como separador y escribir la copia en la cinta 1. 11 reglas en lugar de 30.</p>
+        <details><summary>Ver solución</summary><div class="example" data-machine="duplicar2"></div></details>
+      </div>
+
+      <div class="card warn">
+        <span class="tag extra">Complemento</span>
+        <h2>Errores típicos con 2 cintas</h2>
+        <ul>
+          <li><b>Olvidar que la cinta 2 empieza en blanco.</b> En las primeras reglas, lo leído en la cinta 2 siempre es □.</li>
+          <li><b>Retroceder la cinta 2 sin una marca de comienzo.</b> Sin el #, la cabeza se sale a la izquierda de la primera celda.</li>
+          <li><b>Mover las dos cabezas cuando una debía esperar.</b> Si la cinta 1 no tiene que avanzar, va <b>S</b>.</li>
+          <li><b>No cubrir todos los pares leídos.</b> La regla depende de los dos caracteres: (e2, b, X) y (e2, b, #) son situaciones distintas.</li>
+          <li><b>Aceptar mirando una sola cinta.</b> Hay que verificar el final de la cinta 1 <b>y</b> el estado de la cinta 2 (ej. que no sobren X).</li>
+          <li><b>Moverse antes de tiempo.</b> Al pasar de “contar aes” a “descontar bes”, la cinta 2 primero tiene que volver a la última X (por eso la regla con S en la cinta 1).</li>
+        </ul>
+      </div>
+
+      <h2 class="sub">Practicá: construí la MT con 2 cintas</h2>
+      <p class="muted">En el simulador elegí <b>2 cintas</b>, completá la grilla y apretá <b>Verificar mi MT</b>. También podés resolver con 2 cintas cualquier ejercicio de «Construir».</p>
+      <div id="build2-list"></div>
+
+      <h2 class="sub">Practicá: ¿qué lenguaje reconoce?</h2>
+      <div id="discover2-list"></div>
+    </section>
+
+    <!-- ===================== 5. SIMULADOR ===================== -->
+    <section id="simulador">
+      <h1>5. Simulador</h1>
+      <div class="card" id="sim-card" data-tapes="1">
+        <span class="tag extra">Complemento</span>
         <div class="sim-controls">
+          <label>Cintas
+            <select id="sim-tapes"><option value="1">1 cinta</option><option value="2">2 cintas</option></select>
+          </label>
           <label>Ejemplo
             <select id="sim-example"></select>
           </label>
@@ -291,7 +438,7 @@ e7 - c,?,? - ?</pre>
           <label>Velocidad
             <input id="sim-speed" type="range" min="50" max="1200" step="50" value="450" dir="rtl">
           </label>
-          <label class="check"><input id="sim-guess-on" type="checkbox"> Adiviná el paso</label>
+          <label class="check only1"><input id="sim-guess-on" type="checkbox"> Adiviná el paso</label>
         </div>
         <div id="sim-quick" class="quick"></div>
         <div id="sim-guess" class="guess" hidden>
@@ -304,36 +451,37 @@ e7 - c,?,? - ?</pre>
           <span id="g-score" class="muted"></span>
         </div>
 
+        <div class="sim-editor">
+          <p class="block muted">Programa: una fila por regla. Blanco: □ o _ · Mueve: R o L<span class="only2">, o S (se queda)</span> · Estado final: agregá + (ej. e8+)</p>
+          <div class="table-wrap"><table class="tbl tt tt2 ed" id="sim-grid"></table></div>
+          <div class="btns"><button class="small" id="grid-add">+ Agregar fila</button><button class="small" id="grid-clear">Vaciar</button></div>
+          <div id="sim-errors" class="errors"></div>
+        </div>
+
         <div class="sim-grid">
           <div>
-            <label class="block">Programa (notación Muchnik; blanco: □ o _ ; final con +)
-              <textarea id="sim-program" spellcheck="false"></textarea>
-            </label>
-            <div id="sim-errors" class="errors"></div>
-            <div class="verify">
-              <label>Ejercicio
-                <select id="sim-exercise"><option value="">(elegí un ejercicio)</option></select>
-              </label>
-              <button id="sim-verify">Verificar mi MT</button>
-              <div id="sim-verify-out"></div>
-            </div>
-          </div>
-          <div>
             <div class="status" id="sim-status">Cargá una cadena.</div>
-            <div class="tape" id="sim-tape"></div>
+            <div id="sim-tape"></div>
             <div class="sim-info" id="sim-info"></div>
-            <label class="block">Traza
-              <pre class="code log" id="sim-log"></pre>
-            </label>
+            <span class="block">Traza</span>
+            <div class="log table-wrap" id="sim-log"></div>
           </div>
+          <div><svg id="sim-diagram" class="diagram"></svg></div>
         </div>
-        <svg id="sim-diagram" class="diagram"></svg>
+
+        <div class="verify">
+          <label>Ejercicio
+            <select id="sim-exercise"><option value="">(elegí un ejercicio)</option></select>
+          </label>
+          <button id="sim-verify">Verificar mi MT</button>
+          <div id="sim-verify-out"></div>
+        </div>
       </div>
     </section>
 
     <!-- ===================== 5. AUTOEVALUACIÓN ===================== -->
     <section id="autoevaluacion">
-      <h1>5. Autoevaluación</h1>
+      <h1>6. Autoevaluación</h1>
       <div class="card">
         <span class="tag extra">Simulacro</span>
         <h2>Simulacro de parcial (60 minutos)</h2>
@@ -355,7 +503,7 @@ e7 - c,?,? - ?</pre>
 
     <!-- ===================== 6. RESUMEN ===================== -->
     <section id="resumen">
-      <h1>6. Hoja resumen</h1>
+      <h1>7. Hoja resumen</h1>
       <div class="card sheet" id="hoja">
         <div class="sheet-head">
           <h2>Máquina de Turing: lo esencial</h2>
@@ -368,6 +516,12 @@ e7 - c,?,? - ?</pre>
             <h3>Notación</h3>
             <pre class="code">estado - leído,escrito,dir - destino
 e2 - c,Z,L - e3       e7 - □,□,L - e8+</pre>
+            <table class="tbl tt tt2">
+              <tr><th rowspan="2">Estado</th><th colspan="3" class="t1 g">Cinta</th><th rowspan="2" class="g">Próximo</th></tr>
+              <tr><th class="g">Lee</th><th>Escribe</th><th>Mueve</th></tr>
+              <tr><td>e2</td><td class="g">c</td><td>Z</td><td>L</td><td class="g">e3</td></tr>
+              <tr><td>e7</td><td class="g">□</td><td>□</td><td>L</td><td class="g">e8+</td></tr>
+            </table>
             <h3>Acepta / rechaza</h3>
             <p><b>Acepta</b> al llegar a un estado final. <b>Rechaza</b> si no hay regla para (estado, leído). Puede <b>no terminar</b>. Es <b>determinística</b>: ≤ 1 regla por par.</p>
           </div>
@@ -390,6 +544,13 @@ e2 - c,Z,L - e3       e7 - □,□,L - e8+</pre>
           <tr><td>¿Escribe?</td><td>No</td><td>En la pila</td><td>En la cinta</td></tr>
           <tr><td>Movimiento</td><td>Solo derecha</td><td>Solo derecha</td><td>Derecha e izquierda</td></tr>
           <tr><td>¿Siempre termina?</td><td>Sí</td><td>Sí</td><td>No necesariamente</td></tr>
+        </table>
+        <h3>MT de 2 cintas</h3>
+        <p>Entrada en la cinta 1, cinta 2 en blanco. Cada paso lee las 2 celdas, escribe en las 2 y mueve cada cabeza (R, L o <b>S</b>). Mismo poder que 1 cinta, menos reglas y pasos. Técnicas: # al comienzo de la cinta 2 · cinta 2 como contador (X por cada a) · copiar y comparar · esperar con S · aceptar con los dos centinelas.</p>
+        <table class="tbl tt tt2">
+          <tr><th rowspan="2">Estado</th><th colspan="3" class="t1 g">Cinta 1</th><th colspan="3" class="t2 g">Cinta 2</th><th rowspan="2" class="g">Próximo</th></tr>
+          <tr><th class="g">Lee</th><th>Escribe</th><th>Mueve</th><th class="g">Lee</th><th>Escribe</th><th>Mueve</th></tr>
+          <tr><td>e2</td><td class="g">b</td><td>b</td><td>R</td><td class="g">X</td><td>X</td><td>L</td><td class="g">e2</td></tr>
         </table>
         <p class="tip"><span class="tag extra">Complemento</span> Definición formal usual en otros libros:
           M = (Q, Σ, Γ, δ, q₀, □, F) con δ: Q × Γ → Q × Γ × {L, R}. Σ es la A de Muchnik y Γ incluye A, A′ y □.

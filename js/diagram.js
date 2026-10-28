@@ -47,7 +47,7 @@ TM.renderDiagram = function (svg, machine, hl = {}) {
 
   const label = (x, y, rules, isHl) => {
     const t = el("text", { x, y, class: "edge-label" + (isHl ? " hl" : ""), "text-anchor": "middle" }, labelsLayer);
-    const lines = rules.map((q) => `${q.read}/${q.write},${q.dir}`);
+    const lines = rules.map((q) => q.label || `${q.read}/${q.write},${q.dir}`);
     const y0 = -((lines.length - 1) * 13) / 2;
     lines.forEach((ln, i) => {
       const ts = el("tspan", { x, dy: i === 0 ? y0 + 4 : 13 }, t);

@@ -157,6 +157,36 @@ TM.quiz = [
     answer: 1,
     why: "n = 2: dos aes, dos bes y tres ces.",
   },
+  {
+    q: "En una MT de 2 cintas, ¿dónde está la cadena a analizar al comenzar?",
+    options: ["Repartida entre las dos cintas", "En la cinta 1; la cinta 2 empieza toda en blanco", "En la cinta 2; la cinta 1 es auxiliar", "Copiada en las dos cintas"],
+    answer: 1,
+    why: "La cinta 1 tiene la entrada (como en la MT de 1 cinta) y la cinta 2 es una cinta auxiliar que empieza con blancos.",
+  },
+  {
+    q: "¿Qué hace una MT de 2 cintas en UN solo paso?",
+    options: ["Lee solo una de las cintas, elegida según el estado", "Lee las dos celdas, escribe en las dos y mueve cada cabeza por separado (R, L o S)", "Mueve las dos cabezas siempre en la misma dirección", "Lee las dos cintas pero solo escribe en la primera"],
+    answer: 1,
+    why: "La regla depende del estado y del par de caracteres leídos; cada cinta tiene su propio carácter escrito y su propio movimiento.",
+  },
+  {
+    q: "Comparada con la MT de 1 cinta, la MT de 2 cintas…",
+    options: ["Reconoce más lenguajes", "Reconoce los mismos lenguajes, pero suele necesitar menos estados, reglas y pasos", "Reconoce menos lenguajes", "Solo puede computar, no reconocer"],
+    answer: 1,
+    why: "Son equivalentes: una MT de 1 cinta puede simular a una de 2 cintas. La de 2 cintas solo es más cómoda (ej. L₆: 7 reglas en lugar de 21).",
+  },
+  {
+    q: "En la fila «e2 | b b R | X X L | e2», ¿qué ocurre?",
+    options: ["En e2 lee b y X; la cinta 1 retrocede y la cinta 2 avanza", "En e2, con b en la cinta 1 y X en la cinta 2: deja los dos símbolos, la cabeza 1 avanza (R), la 2 retrocede (L) y sigue en e2", "Lee dos bes en la cinta 1 y dos X en la cinta 2", "Borra la b y la X y pasa a e2"],
+    answer: 1,
+    why: "Columnas de cada cinta: lee, escribe, mueve. Cinta 1: lee b, escribe b, R. Cinta 2: lee X, escribe X, L.",
+  },
+  {
+    q: "En las MT de 2 cintas de este repaso, ¿para qué se escribe un # en la primera celda de la cinta 2?",
+    options: ["Para indicar el estado final", "Para saber dónde empieza la cinta 2 al retroceder, sin moverse a la izquierda de su primera celda", "Porque la cinta 2 no tiene blancos", "Para separar las dos cintas"],
+    answer: 1,
+    why: "Igual que con 1 cinta, ninguna cabeza puede moverse a la izquierda de la primera celda: el # funciona como centinela del comienzo.",
+  },
 ];
 
 
@@ -211,6 +241,19 @@ TM.discover = [
     solution: `<p><b>Computa 2·n en binario</b>: recorre el número sin cambiarlo y escribe un <code>0</code> en lugar del primer blanco (101 = 5 → 1010 = 10).</p>
 <p>Igual que la MT del complemento, es una MT que <b>computa</b>: lo importante es cómo queda la cinta.</p>`,
   },
+  {
+    key: "misterio7",
+    predict: ["aba", "aabaa", "abba", "abbaa", "ab"],
+    hint: "La cinta 2 funciona como contador. ¿Qué cuenta e1? ¿Qué hace e2 con las bes (fijate la S)? ¿Y qué descuentan e2 y e3?",
+    solution: `<p><b>L = {aⁿ bᵐ aⁿ / n ≥ 1, m ≥ 1}</b></p>
+<ul>
+<li><b>e0</b>: marca el comienzo de la cinta 2 con #.</li>
+<li><b>e1</b>: escribe una X en la cinta 2 por cada <code>a</code> del comienzo.</li>
+<li><b>e2</b>: saltea las bes sin tocar la cinta 2 (S). Con la primera <code>a</code> de la 2° parte consume una X.</li>
+<li><b>e3</b>: cada <code>a</code> restante consume una X. Acepta cuando la cinta 1 llega al □ justo cuando la cinta 2 llega al #.</li>
+</ul>
+<p>Hay tantas aes al final como al principio, y al menos una b. Cadena más corta: <code>aba</code>.</p>`,
+  },
 ];
 
 // Ejercicios "construí la MT": se verifican corriendo el programa del alumno.
@@ -264,5 +307,29 @@ TM.build = [
     text: "n y m en unario separados por +. Ej.: 111+11 → 11111, 1+1 → 11.",
     hint: "No hace falta mover símbolos: cambiá el + por un 1 y borrá el último 1.",
     cases: [{ w: "111+11", out: "11111" }, { w: "1+1", out: "11" }, { w: "11+", out: "11" }, { w: "+1", out: "1" }],
+  },
+  {
+    key: "anb2n2",
+    tapes: 2,
+    title: "L = {aⁿ b²ⁿ / n ≥ 1} (2 cintas)",
+    text: "Por cada a, dos bes. Ej.: abb, aabbbb ✔; ab, abbb ✘.",
+    hint: "Escribí una X en la cinta 2 por cada a. Después consumí una X cada dos bes: usá dos estados que se alternen, y en uno de ellos dejá quieta la cinta 2 (S).",
+    cases: [{ w: "abb", ok: true }, { w: "aabbbb", ok: true }, { w: "aaabbbbbb", ok: true }, { w: "ab", ok: false }, { w: "abbb", ok: false }, { w: "aabbb", ok: false }, { w: "bb", ok: false }, { w: "abba", ok: false }],
+  },
+  {
+    key: "anbmcnm2",
+    tapes: 2,
+    title: "L = {aⁿ bᵐ cⁿ⁺ᵐ / n ≥ 1, m ≥ 1} (2 cintas)",
+    text: "El mismo lenguaje que en «Construir», ahora con 2 cintas. Ej.: abcc, aabccc ✔; abc, bcc ✘.",
+    hint: "Con 2 cintas es mucho más fácil: una X por cada a y por cada b; después, una X menos por cada c.",
+    cases: [{ w: "abcc", ok: true }, { w: "aabccc", ok: true }, { w: "abbccc", ok: true }, { w: "abc", ok: false }, { w: "abccc", ok: false }, { w: "bcc", ok: false }, { w: "acc", ok: false }, { w: "abacc", ok: false }],
+  },
+  {
+    key: "wcwr2",
+    tapes: 2,
+    title: "L = {w c wᴿ / w ∈ {a, b}*} (2 cintas)",
+    text: "wᴿ es w al revés. Ej.: c, aca, abcba ✔; abcab, abcb ✘.",
+    hint: "Copiá w en la cinta 2. Al leer la c, la cinta 1 sigue hacia la derecha y la cinta 2 retrocede: así recorrés w al revés.",
+    cases: [{ w: "c", ok: true }, { w: "aca", ok: true }, { w: "abcba", ok: true }, { w: "abbcbba", ok: true }, { w: "abcab", ok: false }, { w: "abcb", ok: false }, { w: "acba", ok: false }, { w: "ab", ok: false }],
   },
 ];

@@ -329,4 +329,122 @@ e1 - 1,1,R - e1
 e1 - □,□,L - e2
 e2 - 1,□,L - e3+  /* borra el último 1: queda n + m */`,
   },
+
+  // ---------- MT de 2 cintas (notación en tabla) ----------
+  // estado | cinta 1: leído escrito mov | cinta 2: leído escrito mov | estado de llegada
+  // mov: R, L o S (la cabeza se queda). La entrada está en la cinta 1; la cinta 2 empieza en blanco.
+  anbn2: {
+    title: "aⁿ bⁿ / n ≥ 1 (2 cintas)",
+    tapes: 2,
+    inputs: ["ab", "aaabbb", "aab", "abb", "ba"],
+    program: `e0 | a a S | □ # R | e1    /* marca el comienzo de la cinta 2 */
+e1 | a a R | □ X R | e1    /* una X por cada a */
+e1 | b b S | □ □ L | e2    /* 1° b: la cinta 2 vuelve a la última X */
+e2 | b b R | X X L | e2    /* cada b consume una X */
+e2 | □ □ S | # # S | e3+   /* terminaron a la vez: acepta */`,
+  },
+
+  L6_2: {
+    title: "L₆ = {aⁿ bⁿ cⁿ / n ≥ 1} (2 cintas)",
+    tapes: 2,
+    inputs: ["abc", "aabbcc", "aaabbbccc", "abcc", "aabbc", "aabc"],
+    program: `e0 | a a S | □ # R | e1    /* marca el comienzo de la cinta 2 */
+e1 | a a R | □ X R | e1    /* una X por cada a */
+e1 | b b S | □ □ L | e2    /* 1° b: la cinta 2 vuelve a la última X */
+e2 | b b R | X X L | e2    /* cada b consume una X */
+e2 | c c S | # # R | e3    /* llegó al #: tantas bes como aes */
+e3 | c c R | X X R | e3    /* cada c vuelve a recorrer una X */
+e3 | □ □ S | □ □ S | e4+   /* las dos cintas terminan a la vez */`,
+  },
+
+  wcw2: {
+    title: "w c w / w ∈ {a,b}* (2 cintas)",
+    tapes: 2,
+    inputs: ["c", "aca", "abcab", "abcba", "abca"],
+    program: `e0 | a a S | □ # R | e1    /* marca el comienzo de la cinta 2 */
+e0 | b b S | □ # R | e1
+e0 | c c S | □ # R | e1
+e1 | a a R | □ a R | e1    /* copia la 1° mitad en la cinta 2 */
+e1 | b b R | □ b R | e1
+e1 | c c S | □ □ L | e2    /* la cinta 1 espera sobre la c */
+e2 | c c S | a a L | e2    /* la cinta 2 vuelve hasta el # */
+e2 | c c S | b b L | e2
+e2 | c c R | # # R | e3    /* las dos cabezas al comienzo de cada w */
+e3 | a a R | a a R | e3    /* compara letra por letra */
+e3 | b b R | b b R | e3
+e3 | □ □ S | □ □ S | e4+   /* terminaron a la vez: acepta */`,
+  },
+
+  duplicar2: {
+    title: "Duplicar una cadena de aes y bes (2 cintas)",
+    tapes: 2,
+    inputs: ["abbaa", "ab", "b"],
+    program: `e0 | a a S | □ # R | e1    /* marca el comienzo de la cinta 2 */
+e0 | b b S | □ # R | e1
+e1 | a a R | □ a R | e1    /* copia la cadena en la cinta 2 */
+e1 | b b R | □ b R | e1
+e1 | □ □ S | □ □ L | e2    /* la cinta 1 espera sobre el blanco */
+e2 | □ □ S | a a L | e2    /* la cinta 2 vuelve hasta el # */
+e2 | □ □ S | b b L | e2
+e2 | □ □ R | # # R | e3    /* deja el blanco como separador */
+e3 | □ a R | a a R | e3    /* escribe la copia en la cinta 1 */
+e3 | □ b R | b b R | e3
+e3 | □ □ L | □ □ S | e4+   /* terminó de copiar */`,
+  },
+
+  misterio7: {
+    title: "MT misteriosa 7 (2 cintas)",
+    tapes: 2,
+    inputs: ["aba", "aabaa", "abba", "abbaa", "ab"],
+    program: `e0 | a a S | □ # R | e1
+e1 | a a R | □ X R | e1
+e1 | b b R | □ □ L | e2
+e2 | b b R | X X S | e2
+e2 | a a R | X X L | e3
+e3 | a a R | X X L | e3
+e3 | □ □ S | # # S | e4+`,
+  },
+
+  anb2n2: {
+    title: "Solución: aⁿ b²ⁿ / n ≥ 1 (2 cintas)",
+    solution: true,
+    tapes: 2,
+    inputs: ["abb", "aabbbb", "ab", "abbb"],
+    program: `e0 | a a S | □ # R | e1    /* marca el comienzo de la cinta 2 */
+e1 | a a R | □ X R | e1    /* una X por cada a */
+e1 | b b S | □ □ L | e2    /* 1° b: la cinta 2 vuelve a la última X */
+e2 | b b R | X X S | e3    /* 1° b del par: la cinta 2 se queda */
+e3 | b b R | X X L | e2    /* 2° b del par: consume la X */
+e2 | □ □ S | # # S | e4+   /* no sobran bes ni Xs: acepta */`,
+  },
+
+  anbmcnm2: {
+    title: "Solución: aⁿ bᵐ cⁿ⁺ᵐ / n ≥ 1, m ≥ 1 (2 cintas)",
+    solution: true,
+    tapes: 2,
+    inputs: ["abcc", "aabccc", "abc", "bcc"],
+    program: `e0 | a a S | □ # R | e1    /* la 1° letra debe ser a */
+e1 | a a R | □ X R | e1    /* una X por cada a... */
+e1 | b b R | □ X R | e2
+e2 | b b R | □ X R | e2    /* ...y una X por cada b */
+e2 | c c S | □ □ L | e3    /* 1° c: la cinta 2 vuelve a la última X */
+e3 | c c R | X X L | e3    /* cada c consume una X */
+e3 | □ □ S | # # S | e4+   /* terminaron a la vez: acepta */`,
+  },
+
+  wcwr2: {
+    title: "Solución: w c wᴿ / w ∈ {a,b}* (2 cintas)",
+    solution: true,
+    tapes: 2,
+    inputs: ["c", "abcba", "abcab", "abcb"],
+    program: `e0 | a a S | □ # R | e1    /* marca el comienzo de la cinta 2 */
+e0 | b b S | □ # R | e1
+e0 | c c S | □ # R | e1
+e1 | a a R | □ a R | e1    /* copia w en la cinta 2 */
+e1 | b b R | □ b R | e1
+e1 | c c R | □ □ L | e2    /* cruza la c; la cinta 2 vuelve a la última letra */
+e2 | a a R | a a L | e2    /* compara: cinta 1 hacia adelante, cinta 2 hacia atrás */
+e2 | b b R | b b L | e2
+e2 | □ □ S | # # S | e3+   /* terminaron a la vez: acepta */`,
+  },
 };
