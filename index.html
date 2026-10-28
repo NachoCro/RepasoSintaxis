@@ -10,11 +10,13 @@
   <header class="top">
     <div class="brand">Máquina de Turing <span>· Repaso SSL (Muchnik, Vol. 3, Cap. 7)</span></div>
     <nav>
+      <a href="#ruta">Ruta de 1 día</a>
       <a href="#conceptos">Conceptos</a>
       <a href="#construir">Construir una MT</a>
       <a href="#descubrir">Descubrir el lenguaje</a>
       <a href="#simulador">Simulador</a>
       <a href="#autoevaluacion">Autoevaluación</a>
+      <a href="#resumen">Hoja resumen</a>
     </nav>
   </header>
 
@@ -23,6 +25,19 @@
       <span class="tag book">Libro</span> contenido tomado de Muchnik, <i>SSL 3 – Algoritmos</i> (2010), págs. 55-56 y 61.
       <span class="tag extra">Complemento</span> material agregado para el estudio (no está en el libro).
     </p>
+
+    <!-- ===================== 0. RUTA ===================== -->
+    <section id="ruta">
+      <h1>0. Ruta de estudio de 1 día</h1>
+      <div class="card">
+        <span class="tag extra">Complemento</span>
+        <p>Unas 6 horas en 5 bloques. Tildá cada tarea al terminarla: el progreso queda guardado en este navegador.</p>
+        <div class="progress"><div id="ruta-bar"></div></div>
+        <p id="ruta-pct" class="muted"></p>
+        <div id="ruta-list" class="ruta"></div>
+        <button class="small" id="ruta-reset">Reiniciar progreso</button>
+      </div>
+    </section>
 
     <!-- ===================== 1. CONCEPTOS ===================== -->
     <section id="conceptos">
@@ -190,6 +205,24 @@ e7 - c,?,? - ?</pre>
           La primera letra se marca distinto (A/B) para saber, al restaurar, dónde está el comienzo sin salirse de la cinta.</p>
         <details><summary>Ver solución</summary><div class="example" data-machine="duplicar"></div></details>
       </div>
+
+      <div class="card warn">
+        <span class="tag extra">Complemento</span>
+        <h2>Errores típicos al construir una MT</h2>
+        <ul>
+          <li><b>No saltear lo ya marcado.</b> En la 2° vuelta hay Ys y Zs en el camino: cada estado que avanza o retrocede necesita reglas <code>Y,Y,R</code>, <code>Z,Z,L</code>, etc.</li>
+          <li><b>Olvidar verificar el final.</b> Si se acepta apenas se marca la última c, <code>abcc</code> también se acepta. El estado final se alcanza recién al leer el <b>□</b>.</li>
+          <li><b>Confundir n ≥ 0 con n ≥ 1.</b> Para aceptar la palabra vacía hace falta una regla con □ desde el estado inicial.</li>
+          <li><b>Moverse a la izquierda de la 1° celda.</b> No hay blanco a la izquierda: para volver al comienzo hay que <b>marcar</b> la primera celda (como en duplicar o en "igual cantidad de a y b").</li>
+          <li><b>Dos reglas para el mismo (estado, símbolo).</b> La MT deja de ser determinística.</li>
+          <li><b>No controlar el orden.</b> Contar bien no alcanza: <code>abcabc</code> tiene 2 de cada una, pero no pertenece a L₆.</li>
+          <li><b>Agregar reglas "de rechazo".</b> No hacen falta: si no hay regla, la MT rechaza.</li>
+        </ul>
+      </div>
+
+      <h2 class="sub">Practicá: construí la MT</h2>
+      <p class="muted">Escribí tu programa en el simulador y apretá <b>Verificar mi MT</b>: se prueba contra todos los casos del ejercicio.</p>
+      <div id="build-list"></div>
     </section>
 
     <!-- ===================== 3. DESCUBRIR ===================== -->
@@ -250,12 +283,26 @@ e7 - c,?,? - ?</pre>
           </label>
           <div class="btns">
             <button id="sim-load">Cargar</button>
+            <button id="sim-back">◀ Paso</button>
             <button id="sim-step">Paso ▶</button>
             <button id="sim-run">Ejecutar ⏩</button>
             <button id="sim-play">Animar ⏯</button>
           </div>
+          <label>Velocidad
+            <input id="sim-speed" type="range" min="50" max="1200" step="50" value="450" dir="rtl">
+          </label>
+          <label class="check"><input id="sim-guess-on" type="checkbox"> Adiviná el paso</label>
         </div>
         <div id="sim-quick" class="quick"></div>
+        <div id="sim-guess" class="guess" hidden>
+          <span>Próximo paso desde <b id="g-from"></b>:</span>
+          <label>escribe <input id="g-write" type="text" maxlength="1" size="2"></label>
+          <label>mueve <select id="g-dir"><option>R</option><option>L</option></select></label>
+          <label>pasa a <select id="g-to"></select></label>
+          <button id="g-check" class="small">Comprobar y avanzar</button>
+          <span id="g-result"></span>
+          <span id="g-score" class="muted"></span>
+        </div>
 
         <div class="sim-grid">
           <div>
@@ -263,6 +310,13 @@ e7 - c,?,? - ?</pre>
               <textarea id="sim-program" spellcheck="false"></textarea>
             </label>
             <div id="sim-errors" class="errors"></div>
+            <div class="verify">
+              <label>Ejercicio
+                <select id="sim-exercise"><option value="">(elegí un ejercicio)</option></select>
+              </label>
+              <button id="sim-verify">Verificar mi MT</button>
+              <div id="sim-verify-out"></div>
+            </div>
           </div>
           <div>
             <div class="status" id="sim-status">Cargá una cadena.</div>
@@ -280,10 +334,66 @@ e7 - c,?,? - ?</pre>
     <!-- ===================== 5. AUTOEVALUACIÓN ===================== -->
     <section id="autoevaluacion">
       <h1>5. Autoevaluación</h1>
+      <div class="card">
+        <span class="tag extra">Simulacro</span>
+        <h2>Simulacro de parcial (60 minutos)</h2>
+        <p>10 preguntas al azar, 1 MT para construir y 1 MT para descubrir. Sin mirar las soluciones.</p>
+        <div class="btns"><button id="mock-start">Empezar simulacro</button><span id="mock-timer" class="timer"></span></div>
+        <div id="mock" hidden>
+          <div id="mock-tasks"></div>
+          <div id="mock-quiz"></div>
+          <div class="score-card"><button id="mock-check">Corregir simulacro</button><span id="mock-score"></span></div>
+        </div>
+      </div>
+      <h2 class="sub">Todas las preguntas</h2>
       <div id="quiz"></div>
       <div class="card score-card">
         <button id="quiz-check">Corregir</button>
         <span id="quiz-score"></span>
+      </div>
+    </section>
+
+    <!-- ===================== 6. RESUMEN ===================== -->
+    <section id="resumen">
+      <h1>6. Hoja resumen</h1>
+      <div class="card sheet" id="hoja">
+        <div class="sheet-head">
+          <h2>Máquina de Turing: lo esencial</h2>
+          <button class="small no-print" id="print-sheet">Imprimir 🖨</button>
+        </div>
+        <div class="grid2">
+          <div>
+            <h3>Componentes (Muchnik)</h3>
+            <p>A (alfabeto) · cinta infinita con blancos □ · cabeza (lee, escribe, mueve 1 celda R/L, nunca a la izquierda de la 1° celda) · A′ (símbolos que escribe) · estados (1 inicial, finales con <b>+</b>) · programa.</p>
+            <h3>Notación</h3>
+            <pre class="code">estado - leído,escrito,dir - destino
+e2 - c,Z,L - e3       e7 - □,□,L - e8+</pre>
+            <h3>Acepta / rechaza</h3>
+            <p><b>Acepta</b> al llegar a un estado final. <b>Rechaza</b> si no hay regla para (estado, leído). Puede <b>no terminar</b>. Es <b>determinística</b>: ≤ 1 regla por par.</p>
+          </div>
+          <div>
+            <h3>Plantilla para construir</h3>
+            <ol>
+              <li><b>Marcar</b> el 1° símbolo libre (a→X).</li>
+              <li><b>Avanzar</b> salteando lo que no importa y lo ya marcado; marcar el que corresponde (b→Y, c→Z).</li>
+              <li><b>Retroceder</b> hasta la última marca del 1° grupo; R → volver a empezar.</li>
+              <li><b>Verificar</b>: no quedan libres → recorrer las marcas hasta el □ → final.</li>
+            </ol>
+            <h3>Para descubrir el lenguaje</h3>
+            <p>Tabla → tarea de cada estado → ciclo principal: ¿cuántos de cada símbolo marca por vuelta? → salida del ciclo y verificación → probar cadenas cortas → cuidar n ≥ 0 / n ≥ 1.</p>
+          </div>
+        </div>
+        <table class="tbl">
+          <tr><th></th><th>AFD</th><th>AFP</th><th>MT</th></tr>
+          <tr><td>Lenguajes</td><td>Regulares</td><td>Independientes de contexto</td><td>Cualquier lenguaje formal</td></tr>
+          <tr><td>Memoria</td><td>Solo el estado</td><td>Estado + pila</td><td>Estado + cinta infinita</td></tr>
+          <tr><td>¿Escribe?</td><td>No</td><td>En la pila</td><td>En la cinta</td></tr>
+          <tr><td>Movimiento</td><td>Solo derecha</td><td>Solo derecha</td><td>Derecha e izquierda</td></tr>
+          <tr><td>¿Siempre termina?</td><td>Sí</td><td>Sí</td><td>No necesariamente</td></tr>
+        </table>
+        <p class="tip"><span class="tag extra">Complemento</span> Definición formal usual en otros libros:
+          M = (Q, Σ, Γ, δ, q₀, □, F) con δ: Q × Γ → Q × Γ × {L, R}. Σ es la A de Muchnik y Γ incluye A, A′ y □.
+          <b>Tesis de Church-Turing:</b> todo lo que puede calcularse con un algoritmo puede calcularlo una MT.</p>
       </div>
     </section>
 

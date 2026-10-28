@@ -144,4 +144,189 @@ e3 - X,X,R - e0
 e4 - Y,Y,R - e4
 e4 - □,□,L - e5+`,
   },
+
+  misterio4: {
+    title: "MT misteriosa 4",
+    inputs: ["ab", "abab", "aba", "ba"],
+    program: `e0 - a,a,R - e1
+e1 - b,b,R - e2
+e2 - a,a,R - e1
+e2 - □,□,L - e3+`,
+  },
+
+  misterio5: {
+    title: "MT misteriosa 5",
+    inputs: ["b", "abb", "aabbb", "ab", "abbb"],
+    program: `e0 - a,X,R - e1
+e0 - Y,Y,R - e3
+e0 - b,b,R - e4
+e1 - a,a,R - e1
+e1 - Y,Y,R - e1
+e1 - b,Y,L - e2
+e2 - Y,Y,L - e2
+e2 - a,a,L - e2
+e2 - X,X,R - e0
+e3 - Y,Y,R - e3
+e3 - b,b,R - e4
+e4 - □,□,L - e5+`,
+  },
+
+  misterio6: {
+    title: "MT misteriosa 6 (computa)",
+    inputs: ["101", "1", "110"],
+    program: `e0 - 0,0,R - e0
+e0 - 1,1,R - e0
+e0 - □,0,L - e1+`,
+  },
+
+  // Soluciones de "Practicá: construí la MT"
+  anbn0: {
+    title: "Solución: aⁿ bⁿ / n ≥ 0",
+    solution: true,
+    inputs: ["", "ab", "aabb", "aab", "ba"],
+    program: `e0 - □,□,L - e4+  /* palabra vacía: n = 0 */
+e0 - a,X,R - e1   /* marca una a */
+e0 - Y,Y,R - e3   /* ya no quedan aes: verificar */
+e1 - a,a,R - e1
+e1 - Y,Y,R - e1
+e1 - b,Y,L - e2   /* marca la b correspondiente */
+e2 - Y,Y,L - e2
+e2 - a,a,L - e2
+e2 - X,X,R - e0   /* vuelve a la última X */
+e3 - Y,Y,R - e3
+e3 - □,□,L - e4+  /* solo había Ys: acepta */`,
+  },
+
+  anbmcnm: {
+    title: "Solución: aⁿ bᵐ cⁿ⁺ᵐ / n ≥ 1, m ≥ 1",
+    solution: true,
+    inputs: ["abcc", "aabccc", "abbccc", "abc", "bcc"],
+    program: `e0 - a,X,R - e1   /* la primera letra debe ser a */
+e1 - a,a,R - e1   /* llevando la marca de una a */
+e1 - b,b,R - e2
+e1 - Z,Z,R - e6
+e1 - c,Z,L - e3
+e2 - b,b,R - e2   /* saltea bes */
+e2 - Z,Z,R - e6
+e2 - c,Z,L - e3   /* marca una c */
+e6 - Z,Z,R - e6   /* saltea ces ya marcadas */
+e6 - c,Z,L - e3
+e3 - Z,Z,L - e3   /* retrocede hasta la última marca */
+e3 - b,b,L - e3
+e3 - a,a,L - e3
+e3 - X,X,R - e5   /* la última marca fue de una a */
+e3 - Y,Y,R - e4   /* la última marca fue de una b */
+e5 - a,X,R - e1   /* después de una X puede venir a o b */
+e5 - b,Y,R - e2
+e4 - b,Y,R - e2   /* después de una Y solo b... */
+e4 - Z,Z,R - e7   /* ...o ya se marcó todo: verificar */
+e7 - Z,Z,R - e7
+e7 - □,□,L - e8+`,
+  },
+
+  palindromo: {
+    title: "Solución: palíndromos sobre {a,b}",
+    solution: true,
+    inputs: ["abba", "aba", "a", "", "ab", "abab"],
+    program: `e0 - a,X,R - e1   /* marca el primer símbolo libre y "lo lleva" */
+e0 - b,X,R - e2
+e0 - X,X,L - e9+  /* longitud par: todo emparejado */
+e0 - □,□,L - e9+  /* palabra vacía */
+e1 - a,a,R - e1   /* llevando a: va hasta el final */
+e1 - b,b,R - e1
+e1 - X,X,L - e3
+e1 - □,□,L - e3
+e2 - a,a,R - e2   /* llevando b: va hasta el final */
+e2 - b,b,R - e2
+e2 - X,X,L - e4
+e2 - □,□,L - e4
+e3 - a,X,L - e5   /* el último libre debe ser a */
+e3 - X,X,L - e9+  /* era el símbolo del medio (longitud impar) */
+e4 - b,X,L - e5   /* el último libre debe ser b */
+e4 - X,X,L - e9+
+e5 - a,a,L - e5   /* vuelve hasta la X de la izquierda */
+e5 - b,b,L - e5
+e5 - X,X,R - e0`,
+  },
+
+  wcw: {
+    title: "Solución: w c w / w ∈ {a,b}*",
+    solution: true,
+    inputs: ["c", "aca", "abcab", "abcba", "abca"],
+    program: `e0 - a,X,R - e1   /* marca una letra de la 1° mitad y la lleva */
+e0 - b,X,R - e2
+e0 - c,c,R - e5   /* 1° mitad terminada: verificar la 2° */
+e1 - a,a,R - e1
+e1 - b,b,R - e1
+e1 - c,c,R - e3
+e2 - a,a,R - e2
+e2 - b,b,R - e2
+e2 - c,c,R - e4
+e3 - X,X,R - e3   /* saltea las ya comparadas */
+e3 - a,X,L - e6   /* coincide: marca */
+e4 - X,X,R - e4
+e4 - b,X,L - e6
+e6 - X,X,L - e6   /* vuelve hasta la c */
+e6 - c,c,L - e7
+e7 - a,a,L - e7   /* y hasta la última X de la 1° mitad */
+e7 - b,b,L - e7
+e7 - X,X,R - e0
+e5 - X,X,R - e5   /* la 2° mitad debe estar toda marcada */
+e5 - □,□,L - e8+`,
+  },
+
+  igualab: {
+    title: "Solución: igual cantidad de aes que de bes",
+    solution: true,
+    inputs: ["", "ab", "ba", "abba", "baab", "aab"],
+    program: `e0 - □,□,L - e9+  /* palabra vacía */
+e0 - a,P,R - e1   /* P marca el comienzo de la cinta */
+e0 - b,P,R - e2
+e1 - a,a,R - e1   /* tengo una a: busco una b */
+e1 - X,X,R - e1
+e1 - b,X,L - e3
+e2 - b,b,R - e2   /* tengo una b: busco una a */
+e2 - X,X,R - e2
+e2 - a,X,L - e3
+e3 - a,a,L - e3   /* vuelve al comienzo (la P) */
+e3 - b,b,L - e3
+e3 - X,X,L - e3
+e3 - P,P,R - e4
+e4 - X,X,R - e4   /* busca el primer símbolo libre */
+e4 - a,X,R - e1
+e4 - b,X,R - e2
+e4 - □,□,L - e9+  /* no quedan libres: acepta */`,
+  },
+
+  incbin: {
+    title: "Solución: sumar 1 a un número binario",
+    solution: true,
+    inputs: ["1011", "111", "0", "1"],
+    program: `e0 - 0,C,R - e1   /* marca la 1° celda (C = 0, U = 1) */
+e0 - 1,U,R - e1
+e1 - 0,0,R - e1   /* va hasta el final */
+e1 - 1,1,R - e1
+e1 - □,□,L - e2
+e2 - 1,0,L - e2   /* 1 + 1 = 0 y me llevo 1 */
+e2 - 0,1,L - e4   /* 0 + 1 = 1: terminó la suma */
+e2 - C,1,R - e9+
+e2 - U,1,R - e3   /* todo era 1: queda 1 seguido de ceros */
+e3 - 0,0,R - e3
+e3 - □,0,L - e9+  /* agrega un 0 al final */
+e4 - 0,0,L - e4   /* vuelve a restaurar la 1° celda */
+e4 - 1,1,L - e4
+e4 - C,0,R - e9+
+e4 - U,1,R - e9+`,
+  },
+
+  sumaunaria: {
+    title: "Solución: suma en unario (111+11 → 11111)",
+    solution: true,
+    inputs: ["111+11", "1+1", "11+", "+"],
+    program: `e0 - 1,1,R - e0   /* recorre el 1° sumando */
+e0 - +,1,R - e1   /* reemplaza el + por un 1 */
+e1 - 1,1,R - e1
+e1 - □,□,L - e2
+e2 - 1,□,L - e3+  /* borra el último 1: queda n + m */`,
+  },
 };

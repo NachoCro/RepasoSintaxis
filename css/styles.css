@@ -185,3 +185,82 @@ svg.diagram { width: 100%; height: auto; display: block; margin-top: .5rem; back
 .score-card { display: flex; gap: 1rem; align-items: center; font-weight: 700; }
 
 footer { margin-top: 3rem; color: var(--muted); font-size: .85rem; border-top: 1px solid var(--border); padding-top: 1rem; }
+
+/* Utilidades */
+.muted { color: var(--muted); }
+.ok { color: var(--ok); }
+.bad { color: var(--bad); }
+.status.bad, .status.ok { margin: .5rem 0; }
+label.check { display: flex; align-items: baseline; gap: .4rem; cursor: pointer; }
+label.check a { font-size: .85rem; color: var(--accent); margin-left: auto; white-space: nowrap; }
+
+/* Ruta de estudio */
+.progress { height: .6rem; background: var(--code-bg); border-radius: 99px; overflow: hidden; border: 1px solid var(--border); }
+.progress > div { height: 100%; width: 0; background: var(--ok); transition: width .3s; }
+.ruta { display: grid; grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); gap: .4rem 1.5rem; margin-bottom: .6rem; }
+.ruta-block h3 { margin-top: .8rem; }
+.ruta-block label.check { padding: .2rem 0; font-size: .92rem; }
+
+/* Errores típicos */
+.card.warn { border-left: 4px solid var(--bad); }
+.card.warn li { margin-bottom: .35rem; }
+
+/* Predicciones (descubrir) */
+.predict { background: var(--code-bg); border-radius: 8px; padding: .6rem .9rem; margin: .8rem 0; }
+.predict p { margin-top: 0; }
+label.pred { display: inline-flex; align-items: center; gap: .3rem; margin: 0 1rem .5rem 0; }
+.predict input[type=text], .guess input[type=text] { min-width: 0; }
+.predict input.answer { width: 100%; margin: .2rem 0 .5rem; }
+label.pred input[type=text] { width: 7rem; }
+
+/* Simulador: predicción, velocidad, verificación */
+.guess {
+  display: flex; flex-wrap: wrap; gap: .5rem .9rem; align-items: center; margin-top: .7rem;
+  padding: .55rem .8rem; border: 1px dashed var(--accent); border-radius: 8px; background: var(--accent-soft); font-size: .9rem;
+}
+.guess label { display: inline-flex; gap: .3rem; align-items: center; }
+.guess input[type=text] { width: 2.4rem; text-align: center; }
+button:disabled { opacity: .45; cursor: not-allowed; }
+input[type=range] { accent-color: var(--accent); }
+.verify { margin-top: .8rem; padding-top: .8rem; border-top: 1px solid var(--border); }
+.verify label { display: flex; flex-direction: column; font-size: .85rem; color: var(--muted); gap: .2rem; margin-bottom: .4rem; }
+.verify select { max-width: 100%; }
+.verify tr.ok td:last-child { color: var(--ok); }
+.verify tr.bad td:last-child { color: var(--bad); }
+.timer { font-family: var(--mono); font-weight: 700; font-size: 1.1rem; align-self: center; }
+
+/* Hoja resumen */
+.sheet-head { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.sheet h3 { color: var(--accent); }
+
+@media (max-width: 600px) {
+  input[type=text] { min-width: 0; width: 100%; }
+  .sim-controls label { flex: 1 1 100%; }
+  .tbl { font-size: .8rem; }
+}
+
+@media print {
+  .top, .no-print, footer, .legend { display: none !important; }
+  body { background: #fff; color: #000; }
+  body.print-sheet main > section:not(#resumen) { display: none; }
+  body.print-sheet #resumen > h1 { display: none; }
+  body.print-sheet #resumen .card { border: none; padding: 0; margin: 0; font-size: 10.5pt; line-height: 1.35; }
+  body.print-sheet .grid2 { grid-template-columns: 1fr 1fr; }
+  body.print-sheet pre.code { white-space: pre-wrap; }
+}
+
+/* Una sección por pantalla */
+body.paged main > section:not(.active) { display: none; }
+body.paged main > section { margin-top: 1rem; min-height: 60vh; }
+nav a.active { background: var(--accent); color: #fff; }
+.pager {
+  display: flex; justify-content: space-between; align-items: center; gap: 1rem;
+  margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border);
+}
+.pager a {
+  color: var(--accent); text-decoration: none; font-weight: 600;
+  border: 1px solid var(--accent); border-radius: 6px; padding: .45rem .9rem;
+}
+.pager a:hover { background: var(--accent-soft); }
+.pager .next { margin-left: auto; }
+@media print { .pager { display: none !important; } }

@@ -12,6 +12,7 @@ TM.Simulator = class {
     this.lastRule = null;
     this.result = null; // null | "acepta" | "rechaza"
     this.reason = "";
+    this.history = []; // instantáneas para "Paso ◀"
     if (machine.finals.has(this.state)) this.halt("acepta", "El estado inicial es final");
   }
 
@@ -26,6 +27,7 @@ TM.Simulator = class {
 
   step() {
     if (this.result) return false;
+    this.history.push({ tape: [...this.tape], head: this.head, state: this.state, steps: this.steps, lastRule: this.lastRule, logLen: this.log.length });
     const sym = this.read();
     const rule = this.m.rules.get(`${this.state}|${sym}`);
     if (!rule) {
@@ -52,6 +54,19 @@ TM.Simulator = class {
       this.halt("rechaza", `Se superaron ${this.maxSteps} pasos (¿ciclo infinito?)`);
     }
     return !this.result;
+  }
+
+  back() {
+    const h = this.history.pop();
+    if (!h) return false;
+    Object.assign(this, { tape: h.tape, head: h.head, state: h.state, steps: h.steps, lastRule: h.lastRule, result: null, reason: "" });
+    this.log.length = h.logLen;
+    return true;
+  }
+
+  // Regla que se aplicaría en el próximo paso (undefined si no hay)
+  nextRule() {
+    return this.m.rules.get(`${this.state}|${this.read()}`);
   }
 
   run() {
