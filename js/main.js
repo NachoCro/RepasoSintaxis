@@ -40,6 +40,9 @@
     const sec = target.closest("main > section") || sections[0];
     sections.forEach((s) => s.classList.toggle("active", s === sec));
     navLinks.forEach((a) => a.classList.toggle("active", a.getAttribute("href") === `#${sec.id}`));
+    // En mobile la nav scrollea horizontal: mantiene visible el link activo
+    const active = navLinks.find((a) => a.classList.contains("active"));
+    if (active) active.parentElement.scrollLeft = active.offsetLeft - active.parentElement.offsetLeft - 16;
     if (!scroll) return;
     if (target === sec) window.scrollTo(0, 0);
     else target.scrollIntoView();

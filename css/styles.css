@@ -237,6 +237,44 @@ input[type=range] { accent-color: var(--accent); }
   input[type=text] { min-width: 0; width: 100%; }
   .sim-controls label { flex: 1 1 100%; }
   .tbl { font-size: .8rem; }
+
+  /* Header compacto: marca en una línea, nav con scroll horizontal */
+  html { scroll-padding-top: 100px; }
+  .top { padding: .5rem 0 0; gap: .3rem; }
+  .brand { padding: 0 1rem; font-size: 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+  .brand span { font-size: .8rem; }
+  nav {
+    flex-wrap: nowrap; overflow-x: auto; width: 100%; padding: 0 1rem .5rem;
+    scrollbar-width: none; -webkit-overflow-scrolling: touch;
+  }
+  nav::-webkit-scrollbar { display: none; }
+  nav a { white-space: nowrap; flex: none; padding: .45rem .75rem; background: var(--code-bg); }
+
+  main { padding: .5rem 1rem 2rem; }
+  h1 { font-size: 1.35rem; }
+  h2 { font-size: 1.1rem; }
+  .card { padding: .8rem .9rem; border-radius: 8px; }
+  pre.code { font-size: .78rem; padding: .6rem .7rem; }
+  input, select, textarea { font-size: 16px; } /* evita el zoom automático de iOS */
+  textarea { min-height: 14rem; font-size: 14px; }
+
+  /* Objetivos táctiles más grandes */
+  button { padding: .55rem 1rem; }
+  button.small { padding: .4rem .7rem; }
+  .question .opt { padding: .5rem .5rem; }
+  .ruta { grid-template-columns: 1fr; }
+  .ruta-block label.check { padding: .4rem 0; }
+
+  .tape span { width: 1.8rem; height: 2rem; font-size: .95rem; }
+  .guess input[type=text] { width: 2.8rem; }
+  label.pred { display: flex; margin-right: 0; }
+  label.pred input[type=text] { flex: 1; width: auto; }
+  .sheet-head { flex-wrap: wrap; }
+  .score-card { flex-wrap: wrap; }
+
+  .pager { flex-wrap: wrap; gap: .5rem; }
+  .pager a { flex: 1 1 100%; text-align: center; }
+  .pager .muted { order: -1; width: 100%; text-align: center; }
 }
 
 @media print {
